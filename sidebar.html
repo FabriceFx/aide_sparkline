@@ -497,65 +497,65 @@
         function buildFormula() {
             const range = document.getElementById('rangeInput').value || 'A1:A10';
             const type = document.getElementById('chartType').value;
-            let options = `{"charttype","${type}"`;
+            let options = `{"charttype"\\"${type}"`;
 
             const empty = document.getElementById('empty').value;
-            if (empty !== 'ignore') options += `;"empty2zero",true`;
+            if (empty !== 'ignore') options += `;"empty2zero"\\true`;
             const nan = document.getElementById('nan').value;
-            if (nan !== 'ignore') options += `;"nan",true`;
-            if (document.getElementById('rtl').checked) options += `;"rtl",true`;
+            if (nan !== 'ignore') options += `;"nan"\\true`;
+            if (document.getElementById('rtl').checked) options += `;"rtl"\\true`;
 
             if (type === 'line') {
                 const color = document.getElementById('lineColor').value;
-                if (color !== '#4285F4') options += `;"color","${color}"`;
+                if (color !== '#4285F4') options += `;"color"\\"${color}"`;
                 const width = document.getElementById('lineWidth').value;
-                if (width !== "2") options += `;"linewidth",${width}`;
+                if (width !== "2") options += `;"linewidth"\\${width}`;
                 const ymax = document.getElementById('lineYmax').value;
-                if (ymax) options += `;"ymax",${ymax}`;
+                if (ymax) options += `;"ymax"\\${ymax}`;
                 const ymin = document.getElementById('lineYmin').value;
-                if (ymin) options += `;"ymin",${ymin}`;
+                if (ymin) options += `;"ymin"\\${ymin}`;
                 const xmax = document.getElementById('lineXmax').value;
-                if (xmax) options += `;"xmax",${xmax}`;
+                if (xmax) options += `;"xmax"\\${xmax}`;
                 const xmin = document.getElementById('lineXmin').value;
-                if (xmin) options += `;"xmin",${xmin}`;
+                if (xmin) options += `;"xmin"\\${xmin}`;
             } else if (type === 'bar') {
                 const max = document.getElementById('barMax').value;
-                if (max) options += `;"max",${max}`;
+                if (max) options += `;"max"\\${max}`;
                 for (let i = 1; i <= 2; i++) {
                     const color = document.getElementById('barColor' + i).value;
-                    if (color !== barColorDefaults[i - 1]) options += `;"color${i}","${color}"`;
+                    if (color !== barColorDefaults[i - 1]) options += `;"color${i}"\\"${color}"`;
                 }
             } else if (type === 'column' || type === 'winloss') {
                 const cColor = document.getElementById('colColor').value;
-                if (cColor !== '#4285F4') options += `;"color","${cColor}"`;
+                if (cColor !== '#4285F4') options += `;"color"\\"${cColor}"`;
                 const cNeg = document.getElementById('colNeg').value;
-                if (cNeg !== '#EA4335') options += `;"negcolor","${cNeg}"`;
+                if (cNeg !== '#EA4335') options += `;"negcolor"\\"${cNeg}"`;
                 
                 if (type === 'column') {
                     const ymax = document.getElementById('colYmax').value;
-                    if (ymax) options += `;"ymax",${ymax}`;
+                    if (ymax) options += `;"ymax"\\${ymax}`;
                     const ymin = document.getElementById('colYmin').value;
-                    if (ymin) options += `;"ymin",${ymin}`;
+                    if (ymin) options += `;"ymin"\\${ymin}`;
                     
                     const cLow = document.getElementById('colLow').value;
-                    if (cLow !== '#FBBC04') options += `;"lowcolor","${cLow}"`;
+                    if (cLow !== '#FBBC04') options += `;"lowcolor"\\"${cLow}"`;
                     const cHigh = document.getElementById('colHigh').value;
-                    if (cHigh !== '#34A853') options += `;"highcolor","${cHigh}"`;
+                    if (cHigh !== '#34A853') options += `;"highcolor"\\"${cHigh}"`;
                     const cFirst = document.getElementById('colFirst').value;
-                    if (cFirst !== '#9333ea') options += `;"firstcolor","${cFirst}"`;
+                    if (cFirst !== '#9333ea') options += `;"firstcolor"\\"${cFirst}"`;
                     const cLast = document.getElementById('colLast').value;
-                    if (cLast !== '#f43f5e') options += `;"lastcolor","${cLast}"`;
+                    if (cLast !== '#f43f5e') options += `;"lastcolor"\\"${cLast}"`;
                 }
 
                 if (document.getElementById('hasAxis').checked) {
-                    options += `;"axis",true`;
+                    options += `;"axis"\\true`;
                     const aColor = document.getElementById('axisColor').value;
-                    if (aColor !== '#000000') options += `;"axiscolor","${aColor}"`;
+                    if (aColor !== '#000000') options += `;"axiscolor"\\"${aColor}"`;
                 }
             }
 
             options += `}`;
-            return `=SPARKLINE(${range}, ${options})`;
+            return `=SPARKLINE(${range}; ${options})`;
         }
 
         function drawLineChart(data, color, width) {
