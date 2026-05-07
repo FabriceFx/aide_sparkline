@@ -500,10 +500,10 @@
             let options = `{"charttype"\\"${type}"`;
 
             const empty = document.getElementById('empty').value;
-            if (empty !== 'ignore') options += `;"empty2zero"\\true`;
+            if (empty !== 'ignore') options += `;"empty2zero"\\"true"`;
             const nan = document.getElementById('nan').value;
-            if (nan !== 'ignore') options += `;"nan"\\true`;
-            if (document.getElementById('rtl').checked) options += `;"rtl"\\true`;
+            if (nan !== 'ignore') options += `;"nan"\\"true"`;
+            if (document.getElementById('rtl').checked) options += `;"rtl"\\"true"`;
 
             if (type === 'line') {
                 const color = document.getElementById('lineColor').value;
@@ -548,7 +548,7 @@
                 }
 
                 if (document.getElementById('hasAxis').checked) {
-                    options += `;"axis"\\true`;
+                    options += `;"axis"\\"true"`;
                     const aColor = document.getElementById('axisColor').value;
                     if (aColor !== '#000000') options += `;"axiscolor"\\"${aColor}"`;
                 }
