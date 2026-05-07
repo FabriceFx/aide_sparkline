@@ -52,7 +52,7 @@ function getSelectedData() {
 function insertFormula(formula, targetCell) {
   const sheet = SpreadsheetApp.getActiveSheet();
   const range = targetCell ? sheet.getRange(targetCell) : sheet.getActiveCell();
-  range.setFormulaLocal(formula);
+  range.setValue(formula);
   SpreadsheetApp.getActive().toast(`Formule insérée en ${range.getA1Notation()}`, 'Succès');
 }
 
