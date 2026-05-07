@@ -39,8 +39,7 @@ function getSelectedData() {
     const range = SpreadsheetApp.getActiveRange();
     if (!range) return [];
     const values = range.getValues();
-    const flat = values.reduce((acc, row) => acc.concat(row), [])
-                       .filter(cell => typeof cell === 'number');
+    const flat = values.flat().filter(cell => typeof cell === 'number');
     return flat;
   } catch (e) {
     return [];

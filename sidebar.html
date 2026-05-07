@@ -334,7 +334,6 @@
     </div>
 
     <script>
-        /* La logique JavaScript reste la même mais avec les libellés traduits */
         const canvas = document.getElementById('chartCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -348,17 +347,53 @@
         for (let i = 1; i <= 9; i++) {
             const container = document.createElement('div');
             container.innerHTML = `
-        <label class="compact-label !text-[9px]">Couleur ${i}</label>
-        <div class="color-row">
-          <input type="color" id="barColor${i}" value="${barColorDefaults[i - 1]}" class="color-picker-sm rounded">
-          <input type="text" id="barColorText${i}" value="" placeholder="${barColorDefaults[i - 1]}" class="input-style !p-1 !text-[9px] font-mono">
-        </div>
-      `;
+                <label class="compact-label !text-[9px]">Couleur ${i}</label>
+                <div class="color-row">
+                    <input type="color" id="barColor${i}" value="${barColorDefaults[i - 1]}" class="color-picker-sm rounded">
+                    <input type="text" id="barColorText${i}" value="" placeholder="${barColorDefaults[i - 1]}" class="input-style !p-1 !text-[9px] font-mono">
+                </div>
+            `;
             barGrid.appendChild(container);
         }
 
-        /* ... Reste des fonctions setupColorSync, toggleSection, fetchRange ... */
-        /* Mettre à jour 'Sheet Data' vers 'Données feuille' et 'Mock Data' vers 'Données fictives' dans fetchRange */
+        function setupColorSync(colorId, textId) {
+            const colorInput = document.getElementById(colorId);
+            const textInput = document.getElementById(textId);
+            if (!colorInput || !textInput) return;
+            
+            colorInput.addEventListener('input', (e) => {
+                textInput.value = e.target.value.toUpperCase();
+                generatePreview();
+            });
+            textInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                if (/^#[0-9A-Fa-f]{6}$/i.test(val)) {
+                    colorInput.value = val;
+                    generatePreview();
+                }
+            });
+        }
+
+        ['lineColor', 'colColor', 'colNeg', 'colLow', 'colHigh', 'colFirst', 'colLast', 'axisColor'].forEach(id => setupColorSync(id, id + 'Text'));
+        for (let i = 1; i <= 9; i++) {
+            setupColorSync('barColor' + i, 'barColorText' + i);
+        }
+
+        function toggleSection(element) {
+            element.classList.toggle('collapsed');
+            const content = element.nextElementSibling;
+            if (content) {
+                content.classList.toggle('collapsed');
+            }
+        }
+
+        function updateOptionsUI() {
+            const type = document.getElementById('chartType').value;
+            document.getElementById('lineOptions').style.display = (type === 'line') ? 'block' : 'none';
+            document.getElementById('barOptions').style.display = (type === 'bar') ? 'block' : 'none';
+            document.getElementById('columnOptions').style.display = (type === 'column' || type === 'winloss') ? 'block' : 'none';
+            generatePreview();
+        }
 
         function fetchRange(inputId) {
             google.script.run.withSuccessHandler(r => {
@@ -375,8 +410,218 @@
             }).getSelectedRange();
         }
 
-        /* ... Le reste de la logique preview et formula reste identique au code source ... */
-        /* */
+        function buildFormula() {
+            const range = document.getElementById('rangeInput').value || 'A1:A10';
+            const type = document.getElementById('chartType').value;
+            let options = `{"charttype","${type}"`;
+
+            const empty = document.getElementById('empty').value;
+            if (empty !== 'ignore') options += `;"empty2zero",true`;
+            const nan = document.getElementById('nan').value;
+            if (nan !== 'ignore') options += `;"nan",true`;
+            if (document.getElementById('rtl').checked) options += `;"rtl",true`;
+
+            if (type === 'line') {
+                const color = document.getElementById('lineColor').value;
+                if (color !== '#4285F4') options += `;"color","${color}"`;
+                const width = document.getElementById('lineWidth').value;
+                if (width !== "2") options += `;"linewidth",${width}`;
+                const ymax = document.getElementById('lineYmax').value;
+                if (ymax) options += `;"ymax",${ymax}`;
+                const ymin = document.getElementById('lineYmin').value;
+                if (ymin) options += `;"ymin",${ymin}`;
+                const xmax = document.getElementById('lineXmax').value;
+                if (xmax) options += `;"xmax",${xmax}`;
+                const xmin = document.getElementById('lineXmin').value;
+                if (xmin) options += `;"xmin",${xmin}`;
+            } else if (type === 'bar') {
+                const max = document.getElementById('barMax').value;
+                if (max) options += `;"max",${max}`;
+                for (let i = 1; i <= 2; i++) {
+                    const color = document.getElementById('barColor' + i).value;
+                    if (color !== barColorDefaults[i - 1]) options += `;"color${i}","${color}"`;
+                }
+            } else if (type === 'column' || type === 'winloss') {
+                const cColor = document.getElementById('colColor').value;
+                if (cColor !== '#4285F4') options += `;"color","${cColor}"`;
+                const cNeg = document.getElementById('colNeg').value;
+                if (cNeg !== '#EA4335') options += `;"negcolor","${cNeg}"`;
+                
+                if (type === 'column') {
+                    const ymax = document.getElementById('colYmax').value;
+                    if (ymax) options += `;"ymax",${ymax}`;
+                    const ymin = document.getElementById('colYmin').value;
+                    if (ymin) options += `;"ymin",${ymin}`;
+                    
+                    const cLow = document.getElementById('colLow').value;
+                    if (cLow !== '#FBBC04') options += `;"lowcolor","${cLow}"`;
+                    const cHigh = document.getElementById('colHigh').value;
+                    if (cHigh !== '#34A853') options += `;"highcolor","${cHigh}"`;
+                    const cFirst = document.getElementById('colFirst').value;
+                    if (cFirst !== '#9333ea') options += `;"firstcolor","${cFirst}"`;
+                    const cLast = document.getElementById('colLast').value;
+                    if (cLast !== '#f43f5e') options += `;"lastcolor","${cLast}"`;
+                }
+
+                if (document.getElementById('hasAxis').checked) {
+                    options += `;"axis",true`;
+                    const aColor = document.getElementById('axisColor').value;
+                    if (aColor !== '#000000') options += `;"axiscolor","${aColor}"`;
+                }
+            }
+
+            options += `}`;
+            return `=SPARKLINE(${range}; ${options})`;
+        }
+
+        function drawLineChart(data, color, width) {
+            if (data.length < 2) return;
+            const max = Math.max(...data);
+            const min = Math.min(...data);
+            const range = max - min || 1;
+            const w = canvas.width;
+            const h = canvas.height;
+            const step = w / (data.length - 1);
+
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            for (let i = 0; i < data.length; i++) {
+                const x = i * step;
+                const y = h - ((data[i] - min) / range) * (h - width * 2) - width;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        }
+
+        function drawBarChart(data) {
+            const max = document.getElementById('barMax').value ? parseFloat(document.getElementById('barMax').value) : Math.max(...data, 100);
+            const w = canvas.width;
+            const h = canvas.height;
+            let currentX = 0;
+            
+            const total = data.reduce((a, b) => a + b, 0);
+            const scale = w / Math.max(total, max);
+
+            for (let i = 0; i < data.length && i < 2; i++) {
+                if (data[i] <= 0) continue;
+                const color = document.getElementById('barColor' + (i + 1)).value;
+                const barWidth = data[i] * scale;
+                ctx.fillStyle = color;
+                ctx.fillRect(currentX, 4, barWidth, h - 8);
+                currentX += barWidth;
+            }
+        }
+
+        function drawColumnChart(data, isWinLoss) {
+            if (data.length === 0) return;
+            const w = canvas.width;
+            const h = canvas.height;
+            const barW = (w / data.length) - 2;
+            
+            let max = Math.max(...data);
+            let min = Math.min(...data);
+            
+            if (isWinLoss) {
+                max = 1; min = -1;
+                data = data.map(v => v > 0 ? 1 : (v < 0 ? -1 : 0));
+            } else {
+                if (min > 0) min = 0;
+            }
+            
+            const range = Math.max(max - min, 1);
+            const zeroY = h - ((0 - min) / range) * h;
+
+            const baseColor = document.getElementById('colColor').value;
+            const negColor = document.getElementById('colNeg').value;
+
+            for (let i = 0; i < data.length; i++) {
+                const val = data[i];
+                const barH = Math.abs(val / range) * h;
+                const x = i * (w / data.length) + 1;
+                let y = val >= 0 ? zeroY - barH : zeroY;
+                
+                ctx.fillStyle = val < 0 ? negColor : baseColor;
+                if (barH > 0) {
+                    ctx.fillRect(x, y, Math.max(1, barW), Math.max(1, barH));
+                }
+            }
+            
+            if (document.getElementById('hasAxis').checked) {
+                ctx.beginPath();
+                ctx.strokeStyle = document.getElementById('axisColor').value;
+                ctx.lineWidth = 1;
+                ctx.moveTo(0, zeroY);
+                ctx.lineTo(w, zeroY);
+                ctx.stroke();
+            }
+        }
+
+        function generatePreview() {
+            const formula = buildFormula();
+            document.getElementById('formulaPreview').innerText = formula;
+
+            // Ajustement dynamique de la largeur du canvas à son conteneur parent
+            if (canvas.parentElement) {
+                canvas.width = canvas.parentElement.clientWidth - 16;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const type = document.getElementById('chartType').value;
+            let dataToUse = currentData.length > 0 ? currentData : null;
+            
+            if (!dataToUse) {
+                if (type === 'bar') dataToUse = mockBarData;
+                else if (type === 'column' || type === 'winloss') dataToUse = mockColData;
+                else dataToUse = mockData;
+            }
+
+            if (type === 'line') {
+                drawLineChart(dataToUse, document.getElementById('lineColor').value, parseInt(document.getElementById('lineWidth').value));
+            } else if (type === 'bar') {
+                drawBarChart(dataToUse);
+            } else if (type === 'column' || type === 'winloss') {
+                drawColumnChart(dataToUse, type === 'winloss');
+            }
+        }
+
+        function applyFormula() {
+            const formula = buildFormula();
+            const target = document.getElementById('targetInput').value;
+            google.script.run.withSuccessHandler(() => {
+                google.script.host.close();
+            }).insertFormula(formula, target);
+        }
+
+        function resetDefaults() {
+            document.getElementById('chartType').value = 'line';
+            document.getElementById('empty').value = 'ignore';
+            document.getElementById('nan').value = 'ignore';
+            document.getElementById('rtl').checked = false;
+            document.getElementById('lineColor').value = '#4285F4';
+            document.getElementById('lineColorText').value = '#4285F4';
+            document.getElementById('lineWidth').value = '2';
+            ['lineYmin','lineYmax','lineXmin','lineXmax','barMax','colYmin','colYmax'].forEach(id => document.getElementById(id).value = '');
+            updateOptionsUI();
+        }
+
+        // Initialize listeners
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('change', generatePreview);
+            if (el.type === 'text' || el.type === 'number') {
+                el.addEventListener('input', generatePreview);
+            }
+        });
+
+        // Initialize UI
+        window.onload = () => {
+            updateOptionsUI();
+            generatePreview();
+        };
     </script>
 </body>
 
